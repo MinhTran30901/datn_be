@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\MessageSent;
 use App\Models\Message;
 use Exception;
 use Illuminate\Http\Request;
@@ -33,7 +34,12 @@ class MessageController extends Controller
             'content' => $request['content'],
         ];
 
-        return Message::create($data);
+        $message = Message::create($data);
+
+        broadcast(new MessageSent($request['sender_id'], $request['receiver_id'], $request['image_url'], $request['content']))
+            ->toOthers();
+
+        return response()->json(['status' => 'Message sent!']);
     }
 
     public function upload($request)

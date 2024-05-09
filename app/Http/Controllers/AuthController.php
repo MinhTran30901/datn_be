@@ -15,7 +15,7 @@ class AuthController extends Controller
     public function signUp(StoreUserRequest $request)
     {
         $user = User::create($request->all());
-        
+
         $token = $user->createToken('authToken')->plainTextToken;
 
         return response()->json(
