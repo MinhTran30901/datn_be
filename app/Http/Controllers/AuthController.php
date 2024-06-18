@@ -14,7 +14,20 @@ class AuthController extends Controller
 {
     public function signUp(StoreUserRequest $request)
     {
-        $user = User::create($request->all());
+        $birthday = $request->birthday;
+        $year_str = substr($birthday, -4);
+        $year = (int)$year_str;
+        
+        $current_year = date('Y');
+        $age = $current_year - $year;
+
+        $user = User::create([
+            'username' => $request->username,
+            'email' => $request->email,
+            'age' => $age,
+            'birthday' => $request->birthday,
+            'password' => Hash::make($request->password),
+        ]);
 
         $token = $user->createToken('authToken')->plainTextToken;
 
@@ -78,10 +91,10 @@ class AuthController extends Controller
         }
         unset($request['image']);
         $data = [
-            'age' => $request['age'] ?? null,
             'description' => $request['description'] ?? null,
-            'address' => $request['address'] ?? null,
             'image_url' => $request['image_url'] ?? null,
+            'latitude' => $request['latitude'] ?? null,
+            'longitude' => $request['longitude'] ?? null,
 
         ];
 

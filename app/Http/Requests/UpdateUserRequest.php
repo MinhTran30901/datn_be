@@ -22,10 +22,10 @@ class UpdateUserRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'age' => 'required|integer|min:18',
             'image' => 'nullable|file|mimes:jpg,jpeg,png',
             'description' => 'string',
-            'address' => 'string',
+            'latitude' => 'numeric',
+            'longitude' => 'numeric',
         ];
     }
 }

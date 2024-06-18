@@ -25,6 +25,7 @@ class StoreUserRequest extends FormRequest
             'username' => 'required|string',
             'email' => 'required|email',
             'password' => 'required|string|min:6',
+            'birthday' => 'nullable|date',
         ];
     }
 }

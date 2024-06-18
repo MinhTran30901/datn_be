@@ -21,9 +21,12 @@ class User extends Authenticatable
         'email',
         'password',
         'username',
+        'birthday',
         'age',
         'image_url',
         'description',
+        'latitude',
+        'longitude',
         'address',
     ];
 }

@@ -16,9 +16,12 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->string('password');
             $table->string('username');
+            $table->string('birthday')->nullable();
             $table->unsignedInteger('age')->nullable();
             $table->string('image_url')->nullable();
             $table->string('description')->nullable();
+            $table->double('latitude')->nullable();
+            $table->double('longitude')->nullable();
             $table->string('address')->nullable();
             $table->rememberToken();
             $table->timestamps();
