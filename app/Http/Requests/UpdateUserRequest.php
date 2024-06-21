@@ -24,8 +24,11 @@ class UpdateUserRequest extends FormRequest
         return [
             'image' => 'nullable|file|mimes:jpg,jpeg,png',
             'description' => 'string',
-            'latitude' => 'numeric',
-            'longitude' => 'numeric',
+            'latitude' => 'nullable|numeric',
+            'longitude' => 'nullable|numeric',
+            'height' => 'nullable|integer|min:100|max:200',
+            'smoking' => 'nullable|integer|in:0,1,2',
+            'alcohol' => 'nullable|integer|in:0,1,2',
         ];
     }
 }

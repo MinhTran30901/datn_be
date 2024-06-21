@@ -95,7 +95,9 @@ class AuthController extends Controller
             'image_url' => $request['image_url'] ?? null,
             'latitude' => $request['latitude'] ?? null,
             'longitude' => $request['longitude'] ?? null,
-
+            'height' => $request['height'] ?? null,
+            'smoking' => $request['smoking'] ?? null,
+            'alcohol' => $request['alcohol'] ?? null,
         ];
 
         return User::where('id', $request->user()->id)->update($data);

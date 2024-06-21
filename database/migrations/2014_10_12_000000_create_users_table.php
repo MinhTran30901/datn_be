@@ -22,6 +22,9 @@ return new class extends Migration
             $table->string('description')->nullable();
             $table->double('latitude')->nullable();
             $table->double('longitude')->nullable();
+            $table->unsignedInteger('height')->nullable();
+            $table->unsignedInteger('smoking')->nullable();
+            $table->unsignedInteger('alcohol')->nullable();
             $table->string('address')->nullable();
             $table->rememberToken();
             $table->timestamps();

@@ -27,6 +27,9 @@ class User extends Authenticatable
         'description',
         'latitude',
         'longitude',
+        'height',
+        'smoking',
+        'alcohol',
         'address',
     ];
 }
