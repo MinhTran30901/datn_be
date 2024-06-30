@@ -22,12 +22,14 @@ Route::middleware('auth:sanctum')->prefix('user')->group(function () {
     Route::post('/change-info', [AuthController::class, 'changeInfo'])->name('user.change-info');
 
     Route::get('/list-available', [AuthController::class, 'listAvailable'])->name('user.list-available');
+    Route::get('/search-users', [AuthController::class, 'searchUsers'])->name('user.search-users');
 });
 
 Route::middleware('auth:sanctum')->prefix('relation')->group(function () {
     Route::post('/send-request', [RelationController::class, 'sendRequest'])->name('post.send-request');
     Route::get('/list-received-request', [RelationController::class, 'listReceivedRequest'])->name('post.list-received-request');
     Route::get('/list-connected', [RelationController::class, 'listConnected'])->name('post.list-connected');
+    Route::delete('/{friendId}', [RelationController::class, 'relationDelete']);
 });
 
 Route::middleware('auth:sanctum')->prefix('message')->group(function () {
