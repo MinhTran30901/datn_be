@@ -72,7 +72,7 @@ class AuthController extends Controller
     {
         return response()->json(
             [
-                'data' => $request->user(),
+                'data' => $request->user()->load(['images', 'interests']),
             ],
             200
         );
@@ -281,7 +281,7 @@ class AuthController extends Controller
         }
     }
 
-
+    
     
         public function searchUsers(SearchUsersRequest $request)
     {

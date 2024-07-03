@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\RelationController;
+use App\Http\Controllers\ImageController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -23,6 +24,11 @@ Route::middleware('auth:sanctum')->prefix('user')->group(function () {
 
     Route::get('/list-available', [AuthController::class, 'listAvailable'])->name('user.list-available');
     Route::get('/search-users', [AuthController::class, 'searchUsers'])->name('user.search-users');
+});
+
+Route::middleware('auth:sanctum')->prefix('images')->group(function () {
+    Route::post('/upload-profile', [ImageController::class, 'uploadProfileImage']);
+    Route::post('/upload-avatar', [ImageController::class, 'uploadAvatarImage']);
 });
 
 Route::middleware('auth:sanctum')->prefix('relation')->group(function () {

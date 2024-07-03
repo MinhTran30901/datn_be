@@ -32,4 +32,14 @@ class User extends Authenticatable
         'alcohol',
         'address',
     ];
+    
+    public function interests()
+    {
+        return $this->belongsToMany(Interest::class, 'user_interests');
+    }
+
+    public function images()
+    {
+        return $this->hasMany(Image::class);
+    }
 }
