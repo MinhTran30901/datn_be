@@ -24,11 +24,12 @@ class AuthController extends Controller
         
         $current_year = date('Y');
         $age = $current_year - $year;
-
+        
         $user = User::create([
             'username' => $request->username,
             'email' => $request->email,
             'age' => $age,
+            'gender' => $request->gender,
             'birthday' => $request->birthday,
             'password' => Hash::make($request->password),
         ]);
@@ -90,34 +91,36 @@ class AuthController extends Controller
 
     public function changeInfo(UpdateUserRequest $request)
     {
-        if ($request->file('image')) {
-            $request['image_url'] = $this->upload($request);
-        }
-        unset($request['image']);
-        if($request['image_url']){
-            $data = [
-                'description' => $request['description'] ?? null,
-                'image_url' => $request['image_url'] ?? null,
-                'latitude' => $request['latitude'] ?? null,
-                'longitude' => $request['longitude'] ?? null,
-                'height' => $request['height'] ?? null,
-                'smoking' => $request['smoking'] ?? null, 
-                'alcohol' => $request['alcohol'] ?? null,
-            ];
-        }else{
-            $data = [
-                'description' => $request['description'] ?? null,
-                'latitude' => $request['latitude'] ?? null,
-                'longitude' => $request['longitude'] ?? null,
-                'height' => $request['height'] ?? null,
-                'smoking' => $request['smoking'] ?? null, 
-                'alcohol' => $request['alcohol'] ?? null,
-            ];
-        }
-        
+        // Lấy id của người dùng hiện tại
+        $userId = $request->user()->id;
+        Log::info('ChangeInfo request: ' . json_encode($request->all()));
+        // Tạo một mảng dữ liệu để cập nhật thông tin người dùng
+        $userData = [
+            'description' => $request->input('description'),
+            'latitude' => $request->input('latitude'),
+            'longitude' => $request->input('longitude'),
+            'gender' => $request->input('gender'),
+            'height' => $request->input('height'),
+            'smoking' => $request->input('smoking'),
+            'alcohol' => $request->input('alcohol'),
+        ];
 
-        return User::where('id', $request->user()->id)->update($data);
+        // Cập nhật thông tin người dùng
+        User::where('id', $userId)->update($userData);
+
+        // Kiểm tra và cập nhật sở thích của người dùng nếu được cung cấp từ request
+        if ($request->has('interests')) {
+            $interests = $request->input('interests');
+            // Đồng bộ hóa sở thích của người dùng
+            $user = User::find($userId);
+            $user->interests()->sync($interests);
+        }
+
+        // Trả về một phản hồi xác nhận
+        return response()->json(['message' => 'Thông tin người dùng đã được cập nhật'], 200);
     }
+
+
 
 
 
@@ -146,12 +149,12 @@ class AuthController extends Controller
                     ->where('id', '!=', $currentUser->id)
                     ->inRandomOrder()
                     ->take($perPage)
-                    ->select('id', 'username', 'image_url', 'description', 'age', 'height', 'smoking', 'alcohol', 'latitude', 'longitude')
+                    ->select('id', 'username', 'gender', 'image_url', 'description', 'age', 'height', 'smoking', 'alcohol', 'latitude', 'longitude')
                     ->selectRaw("( 6371 * acos( cos( radians(?) ) * cos( radians( latitude ) ) * cos( radians( longitude ) - radians(?) ) + sin( radians(?) ) * sin( radians( latitude ) ) ) ) AS distance", [$latitude, $longitude, $latitude])
                     ->get();
             
                 Log::info('Random users suggested', ['count' => $randomUsers->count()]);
-                return response()->json($randomUsers);
+                return response()->json($randomUsers->load(['images', 'interests']));
             }
             
 
@@ -166,7 +169,7 @@ class AuthController extends Controller
             ];
 
             $likedUsers = User::whereIn('id', $likedUsersIds)
-                ->select('id', 'age', 'height', 'smoking', 'alcohol', 'latitude', 'longitude')
+                ->select('id', 'age','height', 'smoking', 'alcohol', 'latitude', 'longitude')
                 ->get();
 
             foreach ($likedUsers as $user) {
@@ -222,7 +225,7 @@ class AuthController extends Controller
 
             // Query suggested users based on calculated criteria and max distance
             $suggestedUsersQuery = User::query()
-                ->select('id', 'username', 'image_url', 'description', 'age', 'height', 'smoking', 'alcohol', 'latitude', 'longitude');
+                ->select('id', 'username', 'image_url','gender', 'description', 'age', 'height', 'smoking', 'alcohol', 'latitude', 'longitude');
 
             if ($avgMinAge !== null && $avgMaxAge !== null) {
                 $suggestedUsersQuery->whereBetween('age', [$avgMinAge, $avgMaxAge]);
@@ -258,12 +261,12 @@ class AuthController extends Controller
                     ->where('id', '!=', $currentUser->id)
                     ->inRandomOrder()
                     ->take($perPage)
-                    ->select('id', 'username', 'image_url', 'description', 'age', 'height', 'smoking', 'alcohol', 'latitude', 'longitude')
+                    ->select('id', 'username', 'image_url','gender', 'description', 'age', 'height', 'smoking', 'alcohol', 'latitude', 'longitude')
                     ->selectRaw("( 6371 * acos( cos( radians(?) ) * cos( radians( latitude ) ) * cos( radians( longitude ) - radians(?) ) + sin( radians(?) ) * sin( radians( latitude ) ) ) ) AS distance", [$latitude, $longitude, $latitude])
                     ->get();
             
                 Log::info('Random users suggested', ['count' => $randomUsers->count()]);
-                return response()->json($randomUsers);
+                return response()->json($randomUsers->load(['images', 'interests']));
             }
 
             Log::info('Suggested users returned', ['count' => $suggestedUsers->count()]);
@@ -273,7 +276,7 @@ class AuthController extends Controller
                 return $suggestedUsers->toArray();
             });
 
-            return response()->json($suggestedUsers);
+            return response()->json($suggestedUsers->load(['images', 'interests']));
 
         } catch (\Exception $e) {
             Log::error('Error in listAvailable', ['exception' => $e]);
@@ -285,18 +288,27 @@ class AuthController extends Controller
     
         public function searchUsers(SearchUsersRequest $request)
     {
+        
         $perPage = 10;
         $currentUser = $request->user();
         $userLatitude = $currentUser->latitude;
         $userLongitude = $currentUser->longitude;
+        
 
         Log::info('SearchUsers request: ' . json_encode($request->all()));
 
         $likedUsersIds = React::where('sender_id', $currentUser->id)
             ->where('status', 1)
             ->pluck('receiver_id');
-            
         $query = User::query();
+
+
+        // Thêm tiêu chí tìm kiếm theo giới tính
+        if ($request->filled('gender')) {
+            $query->where('gender', $request->input('gender'));
+            Log::info('SearchUsers: Gender condition applied');
+        }
+
 
         if ($request->filled('minAge') && $request->input('minAge') != 0 &&
             $request->filled('maxAge') && $request->input('maxAge') != 200) {
@@ -317,16 +329,25 @@ class AuthController extends Controller
         if ($request->filled('distance') && $request->input('distance') != 0) {
             $maxDistance = $request->input('distance');
             $query->selectRaw(
-                "id, username, image_url, description, age, height, smoking, alcohol, latitude, longitude, 
+                "id, username, gender, image_url, description, age, height, smoking, alcohol, latitude, longitude, 
                 ( 6371 * acos( cos( radians(?) ) * cos( radians( latitude ) ) * cos( radians( longitude ) - radians(?) ) + sin( radians(?) ) * sin( radians( latitude ) ) ) ) AS distance",
                 [$userLatitude, $userLongitude, $userLatitude]
             )->having("distance", "<=", $maxDistance);
         } else {
             $query->selectRaw(
-                "id, username, image_url, description, age, height, smoking, alcohol, latitude, longitude, 
+                "id, username, gender, image_url, description, age, height, smoking, alcohol, latitude, longitude, 
                 ( 6371 * acos( cos( radians(?) ) * cos( radians( latitude ) ) * cos( radians( longitude ) - radians(?) ) + sin( radians(?) ) * sin( radians( latitude ) ) ) ) AS distance",
                 [$userLatitude, $userLongitude, $userLatitude]
             );
+        }
+
+        if ($request->filled('interests') && is_array($request->input('interests'))) {
+            $interestIds = $request->input('interests');
+            $query->whereHas('interests', function($query) use ($interestIds) {
+                $query->whereIn('interests.id', $interestIds); 
+            });
+    
+            Log::info('SearchUsers: Interest condition applied');
         }
         
         $results = $query
@@ -335,12 +356,8 @@ class AuthController extends Controller
         ->take($perPage)
         ->get();
 
-        return response()->json($results);
+        return response()->json($results->load(['images', 'interests']));
     }
-
-
-
-
 
 
 

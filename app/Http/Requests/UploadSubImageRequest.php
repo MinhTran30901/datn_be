@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class SearchUsersRequest extends FormRequest
+class UploadSubImageRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,14 +22,8 @@ class SearchUsersRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'gender' => 'integer',
-            'minAge' => 'integer',
-            'maxAge' => 'integer',
-            'minHeight' => 'integer',
-            'maxHeight' => 'integer',
-            'distance' => 'integer',
-            'interests' => 'array',
-            'interests.*' => 'exists:interests,id',
+            'position' => 'required|integer',
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:10240',
         ];
     }
 }

@@ -22,13 +22,15 @@ class UpdateUserRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'image' => 'nullable|file|mimes:jpg,jpeg,png',
             'description' => 'string',
             'latitude' => 'nullable|numeric',
             'longitude' => 'nullable|numeric',
+            'gender' => 'nullable|numeric',
             'height' => 'nullable|integer|min:100|max:200',
             'smoking' => 'nullable|integer|in:0,1,2',
             'alcohol' => 'nullable|integer|in:0,1,2',
+            'interests' => 'nullable|array',
+            'interests.*' => 'exists:interests,id',
         ];
     }
 }

@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('password');
             $table->string('username');
             $table->string('birthday')->nullable();
+            $table->unsignedInteger('gender')->nullable();
             $table->unsignedInteger('age')->nullable();
             $table->string('image_url')->nullable();
             $table->string('description')->nullable();
